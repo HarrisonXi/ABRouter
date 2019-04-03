@@ -9,10 +9,6 @@
 
 #import <XCTest/XCTest.h>
 #import "ABRouter.h"
-#import "UserViewController.h"
-#import "StoryViewController.h"
-#import "StoryListViewController.h"
-#define TIME_OUT 5
 
 @interface ABRouterTests : XCTestCase
 
@@ -20,93 +16,81 @@
 
 @implementation ABRouterTests
 
-- (void)setUp
+- (void)testBlocks
 {
-    [super setUp];
-}
+    XCTestExpectation *expectation = [XCTestExpectation new];
+    expectation.expectedFulfillmentCount = 2;
 
-- (void)tearDown
-{
-    [super tearDown];
-}
-
-- (void)testShared
-{
-    XCTAssertTrue([[ABRouter shared] isKindOfClass:[ABRouter class]]);
-    XCTAssertTrue([[ABRouter shared] isEqual:[ABRouter shared]]);
-}
-
-- (void)testRouteBlocks
-{
-    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-
-    [[ABRouter shared] map:@"/user/add/"
+    [[ABRouter shared] map:@"/add/"
                    toBlock:^id(NSDictionary* params) {
                        XCTAssertEqualObjects(params[@"a"], @"1");
                        XCTAssertEqualObjects(params[@"b"], @"2");
-                       dispatch_semaphore_signal(semaphore);
+                       [expectation fulfill];
                    }];
 
-    ABRouterBlock block = [[ABRouter shared] matchBlock:@"/user/add/?a=1&b=2"];
+    ABRouterBlock block = [[ABRouter shared] matchBlock:@"/add/?a=1"];
     XCTAssertNotNil(block);
-    block(nil);
-    while (dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW)) {
-        [[NSRunLoop currentRunLoop]
-               runMode:NSDefaultRunLoopMode
-            beforeDate:[NSDate dateWithTimeIntervalSinceNow:TIME_OUT]];
-    }
-    [[ABRouter shared] callBlock:@"/user/add/?a=1&b=2"];
+    block(@{@"b" : @"2"});
+    
+    [[ABRouter shared] callBlock:@"/add/?a=1&b=2"];
+    
+    [self waitForExpectations:@[expectation] timeout:1];
 }
 
-- (void)testRoute
+- (void)testControllerClassAndParams
 {
-    [[ABRouter shared] map:@"/user/:userId/"
-         toControllerClass:[UserViewController class]];
-    [[ABRouter shared] map:@"/story/:storyId/"
-         toControllerClass:[StoryViewController class]];
-    [[ABRouter shared] map:@"/user/:userId/story/"
-         toControllerClass:[StoryListViewController class]];
+    [[ABRouter shared] map:@"/a/:aId/" toControllerClass:[UITableViewController class]];
+    [[ABRouter shared] map:@"/b/:bId/" toControllerClass:[UINavigationController class]];
+    [[ABRouter shared] map:@"/a/:aId/mine/" toControllerClass:[UITabBarController class]];
 
-    XCTAssertEqualObjects(
-        [[[ABRouter shared] matchController:@"/story/2/"] class],
-        [StoryViewController class]);
-    XCTAssertEqualObjects(
-        [[[ABRouter shared] matchController:@"/user/1/story/"] class],
-        [StoryListViewController class]);
+    XCTAssertEqualObjects([[[ABRouter shared] matchController:@"/a/1/"] class],
+                          [UITableViewController class]);
+    XCTAssertEqualObjects([[[ABRouter shared] matchController:@"/b/2/"] class],
+                          [UINavigationController class]);
+    XCTAssertEqualObjects([[[ABRouter shared] matchController:@"/a/3/mine/"] class],
+                          [UITabBarController class]);
 
-//    XCTAssertEqualObjects(
-//        [[[ABRouter shared] matchController:@"ABRouter://user/1/"] class],
-//        [UserViewController class]);
-
-    UserViewController* userViewController = (UserViewController*)
-        [[ABRouter shared] matchController:@"/user/1/?a=b&c=d"];
-    XCTAssertEqualObjects(userViewController.params[@"route"],
-                          @"/user/1/?a=b&c=d");
-    XCTAssertEqualObjects(userViewController.params[@"userId"], @"1");
-    XCTAssertEqualObjects(userViewController.params[@"a"], @"b");
-    XCTAssertEqualObjects(userViewController.params[@"c"], @"d");
+    UIViewController *vc = [[ABRouter shared] matchController:@"/a/1/?b=4&c=5"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"route"], @"/a/1/?b=4&c=5");
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    XCTAssertEqualObjects(vc.params[@"b"], @"4");
+    XCTAssertEqualObjects(vc.params[@"c"], @"5");
 	
-	
-	
-	[[ABRouter shared] map:@"/test/:someId/"
-         toControllerClass:[StoryListViewController class]];
-	
-	
-	
-	UserViewController* userViewController1 = (UserViewController*)
-	[[ABRouter shared] matchController:@"/test/7777777?aa=11&bb=22"];
-	NSLog(@"%@", userViewController1.params);
-	
-	
-	UserViewController* userViewController2 = (UserViewController*)
-	[[ABRouter shared] matchController:@"/test/7777777"];
-	NSLog(@"%@", userViewController2.params);
-	
-	UserViewController* userViewController3 = (UserViewController*)
-	[[ABRouter shared] matchController:@"/test/7777777/?aa=11&bb=22"];
-	NSLog(@"%@", userViewController3.params);
-
-	
+	vc = [[ABRouter shared] matchController:@"/a/1?b=4&c=5"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"route"], @"/a/1?b=4&c=5");
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    XCTAssertEqualObjects(vc.params[@"b"], @"4");
+    XCTAssertEqualObjects(vc.params[@"c"], @"5");
+    
+    vc = [[ABRouter shared] matchController:@"/a/1?"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    XCTAssertNil(vc.params[@"a"]);
+    XCTAssertNil(vc.params[@"c"]);
+    
+    vc = [[ABRouter shared] matchController:@"/a/1/?"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    XCTAssertNil(vc.params[@"a"]);
+    XCTAssertNil(vc.params[@"c"]);
+    
+    vc = [[ABRouter shared] matchController:@"a/1?"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    
+    vc = [[ABRouter shared] matchController:@"a/1/?"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    
+    vc = [[ABRouter shared] matchController:@"a/1"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    
+    vc = [[ABRouter shared] matchController:@"a/1/"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
 }
 
 @end
