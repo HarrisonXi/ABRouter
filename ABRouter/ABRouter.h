@@ -23,37 +23,70 @@
 
 #import <Foundation/Foundation.h>
 
-///---------------
-/// @name ABRouter
-///---------------
-
-typedef NS_ENUM (NSInteger, HHRouteType) {
-    HHRouteTypeNone = 0,
-    HHRouteTypeViewController = 1,
-    HHRouteTypeBlock = 2
+typedef NS_OPTIONS (NSInteger, ABRouterType) {
+    ABRouterTypeNone = 0,
+    ABRouterTypeControllerClass = 1,
+    ABRouterTypeControllerBlock = 1 << 1,
+    ABRouterTypeActionBlock = 1 << 2
 };
 
-typedef id (^ABRouterBlock)(NSDictionary *params);
+typedef NS_OPTIONS(NSInteger, ABRouterOption) {
+    ABRouterOptionNone = 0, // match all options
+    ABRouterOptionA = 1,
+    ABRouterOptionB = 1 << 1,
+    ABRouterOptionC = 1 << 2,
+    ABRouterOptionD = 1 << 3,
+    ABRouterOptionAll = 0xF
+};
+
+typedef UIViewController * (^ABRouterControllerBlock)(NSDictionary *params);
+typedef id (^ABRouterActionBlock)(NSDictionary *params);
+
+extern const NSString *ABRouterRouteKey;
+extern const NSString *ABRouterControllerClassKey;
+extern const NSString *ABRouterControllerBlockKey;
+extern const NSString *ABRouterActionBlockKey;
+
+// ################################################################
+#pragma mark -
 
 @interface ABRouter : NSObject
 
 + (instancetype)shared;
 
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass;
-- (UIViewController *)match:(NSString *)route __attribute__((deprecated));
+- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock;
+- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock;
+
+- (void)map:(NSString *)route toControllerClass:(Class)controllerClass abOption:(ABRouterOption)abOption;
+- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock abOption:(ABRouterOption)abOption;
+- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock abOption:(ABRouterOption)abOption;
+
 - (UIViewController *)matchController:(NSString *)route;
+- (ABRouterActionBlock)matchActionBlock:(NSString *)route;
+- (id)callActionBlock:(NSString *)route;
 
-- (void)map:(NSString *)route toBlock:(ABRouterBlock)block;
-- (ABRouterBlock)matchBlock:(NSString *)route;
-- (id)callBlock:(NSString *)route;
+- (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption;
+- (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
+- (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
 
-- (HHRouteType)canRoute:(NSString *)route;
+- (ABRouterType)canRoute:(NSString *)route;
 
 @end
 
-///--------------------------------
-/// @name UIViewController Category
-///--------------------------------
+// ################################################################
+#pragma mark -
+
+@interface ABRouter (Deprecated)
+
+- (void)map:(NSString *)route toBlock:(ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
+- (ABRouterActionBlock)matchBlock:(NSString *)route __deprecated_msg("use -matchActionBlock: instead");
+- (id)callBlock:(NSString *)route __deprecated_msg("use -callActionBlock: instead");
+
+@end
+
+// ################################################################
+#pragma mark -
 
 @interface UIViewController (ABRouter)
 

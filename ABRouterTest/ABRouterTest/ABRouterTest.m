@@ -8,7 +8,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "ABRouter.h"
+#import <ABRouter/ABRouter.h>
 
 @interface ABRouterTests : XCTestCase
 
@@ -22,25 +22,26 @@
     expectation.expectedFulfillmentCount = 2;
 
     [[ABRouter shared] map:@"/add/"
-                   toBlock:^id(NSDictionary* params) {
+             toActionBlock:^id(NSDictionary* params) {
                        XCTAssertEqualObjects(params[@"a"], @"1");
                        XCTAssertEqualObjects(params[@"b"], @"2");
                        [expectation fulfill];
+                       return nil;
                    }];
 
-    ABRouterBlock block = [[ABRouter shared] matchBlock:@"/add/?a=1"];
+    ABRouterActionBlock block = [[ABRouter shared] matchActionBlock:@"/add/?a=1"];
     XCTAssertNotNil(block);
     block(@{@"b" : @"2"});
     
-    [[ABRouter shared] callBlock:@"/add/?a=1&b=2"];
+    [[ABRouter shared] callActionBlock:@"/add/?a=1&b=2"];
     
     [self waitForExpectations:@[expectation] timeout:1];
 }
 
-- (void)testControllerClassAndParams
+- (void)testControllerClass
 {
     [[ABRouter shared] map:@"/a/:aId/" toControllerClass:[UITableViewController class]];
-    [[ABRouter shared] map:@"/b/:bId/" toControllerClass:[UINavigationController class]];
+    [[ABRouter shared] map:@"/b/:bId" toControllerClass:[UINavigationController class]];
     [[ABRouter shared] map:@"/a/:aId/mine/" toControllerClass:[UITabBarController class]];
 
     XCTAssertEqualObjects([[[ABRouter shared] matchController:@"/a/1/"] class],
@@ -52,14 +53,14 @@
 
     UIViewController *vc = [[ABRouter shared] matchController:@"/a/1/?b=4&c=5"];
     XCTAssertEqualObjects([vc class], [UITableViewController class]);
-    XCTAssertEqualObjects(vc.params[@"route"], @"/a/1/?b=4&c=5");
+    XCTAssertEqualObjects(vc.params[ABRouterRouteKey], @"/a/1/?b=4&c=5");
     XCTAssertEqualObjects(vc.params[@"aId"], @"1");
     XCTAssertEqualObjects(vc.params[@"b"], @"4");
     XCTAssertEqualObjects(vc.params[@"c"], @"5");
 	
 	vc = [[ABRouter shared] matchController:@"/a/1?b=4&c=5"];
     XCTAssertEqualObjects([vc class], [UITableViewController class]);
-    XCTAssertEqualObjects(vc.params[@"route"], @"/a/1?b=4&c=5");
+    XCTAssertEqualObjects(vc.params[ABRouterRouteKey], @"/a/1?b=4&c=5");
     XCTAssertEqualObjects(vc.params[@"aId"], @"1");
     XCTAssertEqualObjects(vc.params[@"b"], @"4");
     XCTAssertEqualObjects(vc.params[@"c"], @"5");
@@ -91,6 +92,18 @@
     vc = [[ABRouter shared] matchController:@"a/1/"];
     XCTAssertEqualObjects([vc class], [UITableViewController class]);
     XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+}
+
+- (void)testAppUrlScheme
+{
+    [[ABRouter shared] map:@"/a/:aId/" toControllerClass:[UITableViewController class]];
+    
+    UIViewController *vc = [[ABRouter shared] matchController:@"abrouter://a/1/?b=4&c=5"];
+    XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterRouteKey], @"/a/1/?b=4&c=5");
+    XCTAssertEqualObjects(vc.params[@"aId"], @"1");
+    XCTAssertEqualObjects(vc.params[@"b"], @"4");
+    XCTAssertEqualObjects(vc.params[@"c"], @"5");
 }
 
 @end
