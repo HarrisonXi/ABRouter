@@ -55,19 +55,24 @@ extern const NSString *ABRouterActionBlockKey;
 + (instancetype)shared;
 
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass;
-- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock;
-- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock;
-
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass abOption:(ABRouterOption)abOption;
+
+- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock;
 - (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock abOption:(ABRouterOption)abOption;
+
+// controller class has higher priority than controller block
+// params in router will override VC params set in controller block if there are same keys
+- (UIViewController *)matchController:(NSString *)route;
+- (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption;
+
+- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock;
 - (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock abOption:(ABRouterOption)abOption;
 
-- (UIViewController *)matchController:(NSString *)route;
+// params in action block invokation will override params in router if there are same keys
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route;
-- (id)callActionBlock:(NSString *)route;
-
-- (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption;
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
+
+- (id)callActionBlock:(NSString *)route;
 - (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
 
 - (ABRouterType)canRoute:(NSString *)route;

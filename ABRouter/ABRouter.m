@@ -115,15 +115,34 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption
 {
     NSDictionary *params = [self paramsInRoute:route];
-    Class controllerClass = params[ABRouterControllerClassKey];
-    
-    UIViewController *viewController = [[controllerClass alloc] init];
-    
-    if ([viewController respondsToSelector:@selector(setParams:)]) {
-        [viewController performSelector:@selector(setParams:)
-                             withObject:[params copy]];
+    if (params) {
+        UIViewController *viewController = nil;
+        Class controllerClass = params[ABRouterControllerClassKey];
+        if (controllerClass) {
+            viewController = [controllerClass new];
+            if ([viewController respondsToSelector:@selector(setParams:)]) {
+                [viewController setParams:params];
+            }
+        } else {
+            ABRouterControllerBlock controllerBlock = params[ABRouterControllerBlockKey];
+            if (controllerBlock) {
+                viewController = controllerBlock(params);
+            }
+            if ([viewController respondsToSelector:@selector(setParams:)]
+                && [viewController respondsToSelector:@selector(params)]) {
+                NSDictionary *aParams = [viewController params];
+                if (!aParams) {
+                    [viewController setParams:params];
+                } else {
+                    NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:aParams];
+                    [cParams addEntriesFromDictionary:params];
+                    [viewController setParams:[cParams copy]];
+                }
+            }
+        }
+        return viewController;
     }
-    return viewController;
+    return nil;
 }
 
 - (UIViewController *)match:(NSString *)route
@@ -139,22 +158,18 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
     NSDictionary *params = [self paramsInRoute:route];
-    
-    if (!params){
-        return nil;
-    }
-    
-    ABRouterActionBlock routerBlock = [params[ABRouterActionBlockKey] copy];
-    ABRouterActionBlock returnBlock = ^id(NSDictionary *aParams) {
-        if (routerBlock) {
-            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithDictionary:params];
-            [dic addEntriesFromDictionary:aParams];
-            return routerBlock([NSDictionary dictionaryWithDictionary:dic].copy);
+    if (params) {
+        ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
+        if (actionBlock) {
+            ABRouterActionBlock returnBlock = ^id(NSDictionary *aParams) {
+                NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:params];
+                [cParams addEntriesFromDictionary:aParams];
+                return actionBlock([cParams copy]);
+            };
+            return [returnBlock copy];
         }
-        return nil;
-    };
-    
-    return [returnBlock copy];
+    }
+    return nil;
 }
 
 - (id)callActionBlock:(NSString *)route
@@ -165,10 +180,11 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
     NSDictionary *params = [self paramsInRoute:route];
-    ABRouterActionBlock routerBlock = [params[ABRouterActionBlockKey] copy];
-    
-    if (routerBlock) {
-        return routerBlock([params copy]);
+    if (params) {
+        ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
+        if (actionBlock) {
+            return actionBlock(params);
+        }
     }
     return nil;
 }
