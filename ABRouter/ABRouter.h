@@ -22,31 +22,12 @@
 // SOFTWARE.
 
 #import <Foundation/Foundation.h>
-
-typedef NS_OPTIONS(NSInteger, ABRouterOption) {
-    ABRouterOptionNone = 0, // only match default option
-    ABRouterOptionA = 1,
-    ABRouterOptionB = 1 << 1,
-    ABRouterOptionC = 1 << 2,
-    ABRouterOptionD = 1 << 3,
-    ABRouterOptionAll = 0xF // match all options
-};
-
-typedef UIViewController * (^ABRouterControllerBlock)(NSDictionary *params);
-typedef id (^ABRouterActionBlock)(NSDictionary *params);
-
-extern const NSString *ABRouterRouteKey;
-extern const NSString *ABRouterModuleKey;
-extern const NSString *ABRouterControllerClassKey;
-extern const NSString *ABRouterControllerBlockKey;
-extern const NSString *ABRouterActionBlockKey;
-
-// ################################################################
-#pragma mark -
+#import "ABRouterDefines.h"
 
 @interface ABRouter : NSObject
 
 + (instancetype)shared;
++ (NSInteger)optionCount;
 
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass;
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass abOption:(ABRouterOption)abOption;

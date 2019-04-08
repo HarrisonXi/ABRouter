@@ -1,12 +1,13 @@
-Pod::Spec.new do |s|
-  s.name         = 'ABRouter'
-  version        = '0.1'
-  s.version      = version
-  s.summary      = 'URL Router with ABTest feature for iOS.'
-  s.homepage     = 'https://github.com/HarrisonXi/ABRouter'
-  s.license      = { :type => 'MIT' }
-  s.author       = { 'HarrisonXi' => 'gpra8764@gmail.com' }
-  s.platform     = :ios, '8.0'
-  s.source       = { :git => 'https://github.com/HarrisonXi/ABRouter.git', :branch => 'master' }
-  s.source_files = 'ABRouter/*.{h,m}'
+Pod::Spec.new do |spec|
+  spec.name         = 'ABRouter'
+  version           = '0.1'
+  spec.version      = version
+  spec.summary      = 'URL Router with ABTest feature for iOS.'
+  spec.homepage     = 'https://github.com/HarrisonXi/ABRouter'
+  spec.license      = { :type => 'MIT' }
+  spec.author       = { 'HarrisonXi' => 'gpra8764@gmail.com' }
+  spec.platform     = :ios, '8.0'
+  spec.source       = { :git => 'https://github.com/HarrisonXi/ABRouter.git', :branch => 'master' }
+  spec.source_files = 'ABRouter/*.{h,m}'
+  spec.private_header_files = 'ABRouter/ABRouteMap.h'
 end

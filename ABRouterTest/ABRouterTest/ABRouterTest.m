@@ -157,7 +157,7 @@
     XCTAssertEqualObjects([vc class], [UINavigationController class]);
     XCTAssertEqualObjects(vc.params[ABRouterRouteKey], @"/a/1/?b=4&c=5");
     XCTAssertEqualObjects(vc.params[ABRouterModuleKey], @"/a/:aId/");
-    XCTAssertNotNil(vc.params[ABRouterControllerBlockKey]);
+    XCTAssertNil(vc.params[ABRouterControllerBlockKey]);
     XCTAssertNotNil(vc.params[ABRouterControllerClassKey]);
     XCTAssertEqualObjects(vc.params[@"aId"], @"1");
     XCTAssertEqualObjects(vc.params[@"b"], @"4");

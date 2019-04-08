@@ -23,26 +23,13 @@
 
 #import "ABRouter.h"
 #import <objc/runtime.h>
+#import "ABRouteMap.h"
 
 const NSString *ABRouterRouteKey = @"abr_route";
 const NSString *ABRouterModuleKey = @"abr_module";
 const NSString *ABRouterControllerClassKey = @"abr_controllerClass";
 const NSString *ABRouterControllerBlockKey = @"abr_controllerBlock";
 const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
-
-@interface ABRouteMap : NSObject
-
-@property (nonatomic, strong) NSMutableArray<ABRouteMap *> *subMaps;
-
-@property (nonatomic, strong) Class controllerClass;
-@property (nonatomic, copy) ABRouterControllerBlock controllerBlock;
-@property (nonatomic, copy) ABRouterActionBlock actionBlock;
-
-@end
-
-@implementation ABRouteMap
-
-@end
 
 @interface ABRouteModel : NSObject
 
@@ -96,6 +83,20 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     return router;
 }
 
++ (NSInteger)optionCount
+{
+    static NSInteger optionCount = 0;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSInteger optionAll = ABRouterOptionAll;
+        while (optionAll) {
+            optionAll >>= 1;
+            optionCount++;
+        }
+    });
+    return optionCount;
+}
+
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass
 {
     [self map:route toControllerClass:controllerClass abOption:ABRouterOptionNone];
@@ -111,7 +112,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     }
 #endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.map.controllerClass = controllerClass;
+    [routeModel.map setControllerClass:controllerClass withAbOption:abOption];
     routeModel.module = route;
 }
 
@@ -130,7 +131,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     }
 #endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.map.controllerBlock = controllerBlock;
+    [routeModel.map setControllerBlock:controllerBlock withAbOption:abOption];
     routeModel.module = route;
 }
 
@@ -149,7 +150,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     }
 #endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.map.actionBlock = actionBlock;
+    [routeModel.map setActionBlock:actionBlock withAbOption:abOption];
     routeModel.module = route;
 }
 
@@ -161,7 +162,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption
 {
     if (route && route.length > 0) {
-        NSDictionary *params = [self paramsInRoute:route];
+        NSDictionary *params = [self paramsInRoute:route abOption:abOption];
         if (params) {
             UIViewController *viewController = nil;
             Class controllerClass = params[ABRouterControllerClassKey];
@@ -201,7 +202,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
     if (route && route.length > 0) {
-        NSDictionary *params = [self paramsInRoute:route];
+        NSDictionary *params = [self paramsInRoute:route abOption:abOption];
         if (params) {
             ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
             if (actionBlock) {
@@ -225,7 +226,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
     if (route && route.length > 0) {
-        NSDictionary *params = [self paramsInRoute:route];
+        NSDictionary *params = [self paramsInRoute:route abOption:abOption];
         if (params) {
             ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
             if (actionBlock) {
@@ -244,7 +245,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (BOOL)canMapController:(NSString *)route abOption:(ABRouterOption)abOption
 {
     if (route && route.length > 0) {
-        NSDictionary *params = [self paramsInRoute:route];
+        NSDictionary *params = [self paramsInRoute:route abOption:abOption];
         if (params && (params[ABRouterControllerClassKey] || params[ABRouterControllerBlockKey])) {
             return YES;
         }
@@ -260,7 +261,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 - (BOOL)canMapAction:(NSString *)route abOption:(ABRouterOption)abOption
 {
     if (route && route.length > 0) {
-        NSDictionary *params = [self paramsInRoute:route];
+        NSDictionary *params = [self paramsInRoute:route abOption:abOption];
         if (params && params[ABRouterActionBlockKey]) {
             return YES;
         }
@@ -308,7 +309,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     return _routeModel;
 }
 
-- (NSDictionary *)paramsInRoute:(NSString *)route
+- (NSDictionary *)paramsInRoute:(NSString *)route abOption:(ABRouterOption)abOption
 {
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
 
@@ -337,8 +338,8 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
             NSArray *paramArr = [paramStr componentsSeparatedByString:@"="];
             if (paramArr.count > 1) {
                 NSString *key = [paramArr objectAtIndex:0];
-                NSString *value = [paramArr objectAtIndex:1];
                 if (![params.allKeys containsObject:key]) {
+                    NSString *value = [paramArr objectAtIndex:1];
                     params[key] = value;
                 }
             }
@@ -346,16 +347,8 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     }
     
     params[ABRouterModuleKey] = routeModel.module;
-    if (routeModel.map.controllerClass) {
-        params[ABRouterControllerClassKey] = routeModel.map.controllerClass;
-    }
-    if (routeModel.map.controllerBlock) {
-        params[ABRouterControllerBlockKey] = routeModel.map.controllerBlock;
-    }
-    if (routeModel.map.actionBlock) {
-        params[ABRouterActionBlockKey] = routeModel.map.actionBlock;
-    }
-
+    [params addEntriesFromDictionary:[routeModel.map paramsWithAbOption:abOption]];
+    
     return [params copy];
 }
 
