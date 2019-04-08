@@ -25,9 +25,24 @@
 #import <objc/runtime.h>
 
 const NSString *ABRouterRouteKey = @"abr_route";
+const NSString *ABRouterModuleKey = @"abr_module";
 const NSString *ABRouterControllerClassKey = @"abr_controllerClass";
 const NSString *ABRouterControllerBlockKey = @"abr_controllerBlock";
 const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
+
+@interface ABRouteMap : NSObject
+
+@property (nonatomic, strong) NSMutableArray<ABRouteMap *> *subMaps;
+
+@property (nonatomic, strong) Class controllerClass;
+@property (nonatomic, copy) ABRouterControllerBlock controllerBlock;
+@property (nonatomic, copy) ABRouterActionBlock actionBlock;
+
+@end
+
+@implementation ABRouteMap
+
+@end
 
 @interface ABRouteModel : NSObject
 
@@ -35,9 +50,8 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 @property (nonatomic, strong) NSString *paramName;
 @property (nonatomic, strong) ABRouteModel *paramRoute;
 
-@property (nonatomic, strong) Class controllerClass;
-@property (nonatomic, copy) ABRouterControllerBlock controllerBlock;
-@property (nonatomic, copy) ABRouterActionBlock actionBlock;
+@property (nonatomic, strong) NSString *module;
+@property (nonatomic, strong) ABRouteMap *map;
 
 @end
 
@@ -49,6 +63,14 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
         _subRoutes = [NSMutableDictionary dictionary];
     }
     return _subRoutes;
+}
+
+- (ABRouteMap *)map
+{
+    if (!_map) {
+        _map = [ABRouteMap new];
+    }
+    return _map;
 }
 
 @end
@@ -81,8 +103,16 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (void)map:(NSString *)route toControllerClass:(Class)controllerClass abOption:(ABRouterOption)abOption
 {
+#ifdef DEBUG
+    NSParameterAssert(route && route.length > 0);
+#else
+    if (!route || route.length == 0) {
+        return;
+    }
+#endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.controllerClass = controllerClass;
+    routeModel.map.controllerClass = controllerClass;
+    routeModel.module = route;
 }
 
 - (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock
@@ -92,8 +122,16 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock abOption:(ABRouterOption)abOption
 {
+#ifdef DEBUG
+    NSParameterAssert(route && route.length > 0);
+#else
+    if (!route || route.length == 0) {
+        return;
+    }
+#endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.controllerBlock = controllerBlock;
+    routeModel.map.controllerBlock = controllerBlock;
+    routeModel.module = route;
 }
 
 - (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock
@@ -103,8 +141,16 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock abOption:(ABRouterOption)abOption
 {
+#ifdef DEBUG
+    NSParameterAssert(route && route.length > 0);
+#else
+    if (!route || route.length == 0) {
+        return;
+    }
+#endif
     ABRouteModel *routeModel = [self routeModelOfRoute:route];
-    routeModel.actionBlock = actionBlock;
+    routeModel.map.actionBlock = actionBlock;
+    routeModel.module = route;
 }
 
 - (UIViewController *)matchController:(NSString *)route
@@ -114,40 +160,37 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption
 {
-    NSDictionary *params = [self paramsInRoute:route];
-    if (params) {
-        UIViewController *viewController = nil;
-        Class controllerClass = params[ABRouterControllerClassKey];
-        if (controllerClass) {
-            viewController = [controllerClass new];
-            if ([viewController respondsToSelector:@selector(setParams:)]) {
-                [viewController setParams:params];
-            }
-        } else {
-            ABRouterControllerBlock controllerBlock = params[ABRouterControllerBlockKey];
-            if (controllerBlock) {
-                viewController = controllerBlock(params);
-            }
-            if ([viewController respondsToSelector:@selector(setParams:)]
-                && [viewController respondsToSelector:@selector(params)]) {
-                NSDictionary *aParams = [viewController params];
-                if (!aParams) {
+    if (route && route.length > 0) {
+        NSDictionary *params = [self paramsInRoute:route];
+        if (params) {
+            UIViewController *viewController = nil;
+            Class controllerClass = params[ABRouterControllerClassKey];
+            if (controllerClass) {
+                viewController = [controllerClass new];
+                if ([viewController respondsToSelector:@selector(setParams:)]) {
                     [viewController setParams:params];
-                } else {
-                    NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:aParams];
-                    [cParams addEntriesFromDictionary:params];
-                    [viewController setParams:[cParams copy]];
+                }
+            } else {
+                ABRouterControllerBlock controllerBlock = params[ABRouterControllerBlockKey];
+                if (controllerBlock) {
+                    viewController = controllerBlock(params);
+                }
+                if ([viewController respondsToSelector:@selector(setParams:)]
+                    && [viewController respondsToSelector:@selector(params)]) {
+                    NSDictionary *aParams = [viewController params];
+                    if (!aParams) {
+                        [viewController setParams:params];
+                    } else {
+                        NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:aParams];
+                        [cParams addEntriesFromDictionary:params];
+                        [viewController setParams:[cParams copy]];
+                    }
                 }
             }
+            return viewController;
         }
-        return viewController;
     }
     return nil;
-}
-
-- (UIViewController *)match:(NSString *)route
-{
-    return [self matchController:route];
 }
 
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route
@@ -157,16 +200,18 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
-    NSDictionary *params = [self paramsInRoute:route];
-    if (params) {
-        ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
-        if (actionBlock) {
-            ABRouterActionBlock returnBlock = ^id(NSDictionary *aParams) {
-                NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:params];
-                [cParams addEntriesFromDictionary:aParams];
-                return actionBlock([cParams copy]);
-            };
-            return [returnBlock copy];
+    if (route && route.length > 0) {
+        NSDictionary *params = [self paramsInRoute:route];
+        if (params) {
+            ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
+            if (actionBlock) {
+                ABRouterActionBlock returnBlock = ^id(NSDictionary *aParams) {
+                    NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:params];
+                    [cParams addEntriesFromDictionary:aParams];
+                    return actionBlock([cParams copy]);
+                };
+                return [returnBlock copy];
+            }
         }
     }
     return nil;
@@ -179,32 +224,48 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 
 - (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption
 {
-    NSDictionary *params = [self paramsInRoute:route];
-    if (params) {
-        ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
-        if (actionBlock) {
-            return actionBlock(params);
+    if (route && route.length > 0) {
+        NSDictionary *params = [self paramsInRoute:route];
+        if (params) {
+            ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
+            if (actionBlock) {
+                return actionBlock(params);
+            }
         }
     }
     return nil;
 }
 
-- (ABRouterType)canRoute:(NSString *)route
+- (BOOL)canMapController:(NSString *)route
 {
-    ABRouterType result = ABRouterTypeNone;
-    
-    NSDictionary *params = [self paramsInRoute:route];
-    if (params[ABRouterControllerClassKey]) {
-        result |= ABRouterTypeControllerClass;
+    return [self canMapController:route abOption:ABRouterOptionNone];
+}
+
+- (BOOL)canMapController:(NSString *)route abOption:(ABRouterOption)abOption
+{
+    if (route && route.length > 0) {
+        NSDictionary *params = [self paramsInRoute:route];
+        if (params && (params[ABRouterControllerClassKey] || params[ABRouterControllerBlockKey])) {
+            return YES;
+        }
     }
-    if (params[ABRouterControllerBlockKey]) {
-        result |= ABRouterTypeControllerBlock;
+    return NO;
+}
+
+- (BOOL)canMapAction:(NSString *)route
+{
+    return [self canMapAction:route abOption:ABRouterOptionNone];
+}
+
+- (BOOL)canMapAction:(NSString *)route abOption:(ABRouterOption)abOption
+{
+    if (route && route.length > 0) {
+        NSDictionary *params = [self paramsInRoute:route];
+        if (params && params[ABRouterActionBlockKey]) {
+            return YES;
+        }
     }
-    if (params[ABRouterActionBlockKey]) {
-        result |= ABRouterTypeActionBlock;
-    }
-    
-    return result;
+    return NO;
 }
 
 #pragma mark Deprecated
@@ -225,9 +286,27 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 {
     return [self callActionBlock:route];
 }
+
+- (BOOL)canRoute:(NSString *)route
+{
+    if ([self canMapController:route]) {
+        return YES;
+    } else if ([self canMapAction:route]) {
+        return YES;
+    }
+    return NO;
+}
 #pragma clang diagnostic pop
 
 #pragma mark Private
+
+- (ABRouteModel *)routeModel
+{
+    if (!_routeModel) {
+        _routeModel = [ABRouteModel new];
+    }
+    return _routeModel;
+}
 
 - (NSDictionary *)paramsInRoute:(NSString *)route
 {
@@ -266,25 +345,18 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
         }
     }
     
-    if (routeModel.controllerClass) {
-        params[ABRouterControllerClassKey] = routeModel.controllerClass;
+    params[ABRouterModuleKey] = routeModel.module;
+    if (routeModel.map.controllerClass) {
+        params[ABRouterControllerClassKey] = routeModel.map.controllerClass;
     }
-    if (routeModel.controllerBlock) {
-        params[ABRouterControllerBlockKey] = routeModel.controllerBlock;
+    if (routeModel.map.controllerBlock) {
+        params[ABRouterControllerBlockKey] = routeModel.map.controllerBlock;
     }
-    if (routeModel.actionBlock) {
-        params[ABRouterActionBlockKey] = routeModel.actionBlock;
+    if (routeModel.map.actionBlock) {
+        params[ABRouterActionBlockKey] = routeModel.map.actionBlock;
     }
 
     return [params copy];
-}
-
-- (ABRouteModel *)routeModel
-{
-    if (!_routeModel) {
-        _routeModel = [ABRouteModel new];
-    }
-    return _routeModel;
 }
 
 - (NSArray *)pathComponentsOfRoute:(NSString *)route
@@ -305,7 +377,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 {
     // filter out the app URL scheme.
     for (NSString *appUrlScheme in [self appUrlSchemes]) {
-        if ([route hasPrefix:[NSString stringWithFormat:@"%@:", appUrlScheme]]) {
+        if ([route hasPrefix:[NSString stringWithFormat:@"%@:", appUrlScheme]] && route.length > appUrlScheme.length + 2) {
             return [route substringFromIndex:appUrlScheme.length + 2];
         }
     }

@@ -23,26 +23,20 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_OPTIONS (NSInteger, ABRouterType) {
-    ABRouterTypeNone = 0,
-    ABRouterTypeControllerClass = 1,
-    ABRouterTypeControllerBlock = 1 << 1,
-    ABRouterTypeActionBlock = 1 << 2
-};
-
 typedef NS_OPTIONS(NSInteger, ABRouterOption) {
-    ABRouterOptionNone = 0, // match all options
+    ABRouterOptionNone = 0, // only match default option
     ABRouterOptionA = 1,
     ABRouterOptionB = 1 << 1,
     ABRouterOptionC = 1 << 2,
     ABRouterOptionD = 1 << 3,
-    ABRouterOptionAll = 0xF
+    ABRouterOptionAll = 0xF // match all options
 };
 
 typedef UIViewController * (^ABRouterControllerBlock)(NSDictionary *params);
 typedef id (^ABRouterActionBlock)(NSDictionary *params);
 
 extern const NSString *ABRouterRouteKey;
+extern const NSString *ABRouterModuleKey;
 extern const NSString *ABRouterControllerClassKey;
 extern const NSString *ABRouterControllerBlockKey;
 extern const NSString *ABRouterActionBlockKey;
@@ -75,7 +69,11 @@ extern const NSString *ABRouterActionBlockKey;
 - (id)callActionBlock:(NSString *)route;
 - (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
 
-- (ABRouterType)canRoute:(NSString *)route;
+- (BOOL)canMapController:(NSString *)route;
+- (BOOL)canMapController:(NSString *)route abOption:(ABRouterOption)abOption;
+
+- (BOOL)canMapAction:(NSString *)route;
+- (BOOL)canMapAction:(NSString *)route abOption:(ABRouterOption)abOption;
 
 @end
 
@@ -87,6 +85,7 @@ extern const NSString *ABRouterActionBlockKey;
 - (void)map:(NSString *)route toBlock:(ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
 - (ABRouterActionBlock)matchBlock:(NSString *)route __deprecated_msg("use -matchActionBlock: instead");
 - (id)callBlock:(NSString *)route __deprecated_msg("use -callActionBlock: instead");
+- (BOOL)canRoute:(NSString *)route __deprecated_msg("use -canMapController: & -canMapAction: instead");
 
 @end
 
