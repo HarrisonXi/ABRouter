@@ -23,12 +23,16 @@
 #import <Foundation/Foundation.h>
 #import "ABRouterDefines.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface ABRouteMap : NSObject
 
-- (void)setControllerClass:(Class)controllerClass withAbOption:(ABRouterOption)abOption;
-- (void)setControllerBlock:(ABRouterControllerBlock)controllerBlock withAbOption:(ABRouterOption)abOption;
-- (void)setActionBlock:(ABRouterActionBlock)actionBlock withAbOption:(ABRouterOption)abOption;
+- (void)setControllerClass:(nullable Class)controllerClass withAbOption:(ABRouterOption)abOption;
+- (void)setControllerBlock:(nullable ABRouterControllerBlock)controllerBlock withAbOption:(ABRouterOption)abOption;
+- (void)setActionBlock:(nullable ABRouterActionBlock)actionBlock withAbOption:(ABRouterOption)abOption;
 
-- (NSDictionary *)paramsWithAbOption:(ABRouterOption)abOption;
+- (nullable NSDictionary *)paramsWithAbOption:(ABRouterOption)abOption;
 
 @end
+
+NS_ASSUME_NONNULL_END

@@ -153,7 +153,7 @@
     XCTAssertTrue([_router canMapController:@"/a/1/?b=4&c=5"]);
 
     vc = [_router matchController:@"/a/1/?b=4&c=5"];
-    // controller class has higher priority than controller block
+    // controller class and controller block are mutually exclusive
     XCTAssertEqualObjects([vc class], [UINavigationController class]);
     XCTAssertEqualObjects(vc.params[ABRouterRouteKey], @"/a/1/?b=4&c=5");
     XCTAssertEqualObjects(vc.params[ABRouterModuleKey], @"/a/:aId/");

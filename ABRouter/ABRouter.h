@@ -24,31 +24,33 @@
 #import <Foundation/Foundation.h>
 #import "ABRouterDefines.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface ABRouter : NSObject
 
 + (instancetype)shared;
 + (NSInteger)optionCount;
 
-- (void)map:(NSString *)route toControllerClass:(Class)controllerClass;
-- (void)map:(NSString *)route toControllerClass:(Class)controllerClass abOption:(ABRouterOption)abOption;
+- (void)map:(NSString *)route toControllerClass:(nullable Class)controllerClass;
+- (void)map:(NSString *)route toControllerClass:(nullable Class)controllerClass abOption:(ABRouterOption)abOption;
 
-- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock;
-- (void)map:(NSString *)route toControllerBlock:(ABRouterControllerBlock)controllerBlock abOption:(ABRouterOption)abOption;
+- (void)map:(NSString *)route toControllerBlock:(nullable ABRouterControllerBlock)controllerBlock;
+- (void)map:(NSString *)route toControllerBlock:(nullable ABRouterControllerBlock)controllerBlock abOption:(ABRouterOption)abOption;
 
-// controller class has higher priority than controller block
+// controller class and controller block are mutually exclusive
 // params in router will override VC params set in controller block if there are same keys
-- (UIViewController *)matchController:(NSString *)route;
-- (UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption;
+- (nullable UIViewController *)matchController:(NSString *)route;
+- (nullable UIViewController *)matchController:(NSString *)route abOption:(ABRouterOption)abOption;
 
-- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock;
-- (void)map:(NSString *)route toActionBlock:(ABRouterActionBlock)actionBlock abOption:(ABRouterOption)abOption;
+- (void)map:(NSString *)route toActionBlock:(nullable ABRouterActionBlock)actionBlock;
+- (void)map:(NSString *)route toActionBlock:(nullable ABRouterActionBlock)actionBlock abOption:(ABRouterOption)abOption;
 
 // params in action block invokation will override params in router if there are same keys
-- (ABRouterActionBlock)matchActionBlock:(NSString *)route;
-- (ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
+- (nullable ABRouterActionBlock)matchActionBlock:(NSString *)route;
+- (nullable ABRouterActionBlock)matchActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
 
-- (id)callActionBlock:(NSString *)route;
-- (id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
+- (nullable id)callActionBlock:(NSString *)route;
+- (nullable id)callActionBlock:(NSString *)route abOption:(ABRouterOption)abOption;
 
 - (BOOL)canMapController:(NSString *)route;
 - (BOOL)canMapController:(NSString *)route abOption:(ABRouterOption)abOption;
@@ -63,7 +65,7 @@
 
 @interface ABRouter (Deprecated)
 
-- (void)map:(NSString *)route toBlock:(ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
+- (void)map:(NSString *)route toBlock:(nullable ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
 - (ABRouterActionBlock)matchBlock:(NSString *)route __deprecated_msg("use -matchActionBlock: instead");
 - (id)callBlock:(NSString *)route __deprecated_msg("use -callActionBlock: instead");
 - (BOOL)canRoute:(NSString *)route __deprecated_msg("use -canMapController: & -canMapAction: instead");
@@ -75,6 +77,8 @@
 
 @interface UIViewController (ABRouter)
 
-@property (nonatomic, strong) NSDictionary *params;
+@property (nonatomic, strong, nullable) NSDictionary *params;
 
 @end
+
+NS_ASSUME_NONNULL_END
