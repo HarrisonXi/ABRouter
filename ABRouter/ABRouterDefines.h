@@ -37,6 +37,7 @@ typedef id (^ABRouterActionBlock)(NSDictionary *params);
 
 extern const NSString *ABRouterRouteKey;
 extern const NSString *ABRouterModuleKey;
+extern const NSString *ABRouterOptionKey; // value will be a NSNumber of matched ABRouterOption
 extern const NSString *ABRouterControllerClassKey;
 extern const NSString *ABRouterControllerBlockKey;
 extern const NSString *ABRouterActionBlockKey;

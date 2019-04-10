@@ -27,6 +27,7 @@
 
 const NSString *ABRouterRouteKey = @"abr_route";
 const NSString *ABRouterModuleKey = @"abr_module";
+const NSString *ABRouterOptionKey = @"abr_option";
 const NSString *ABRouterControllerClassKey = @"abr_controllerClass";
 const NSString *ABRouterControllerBlockKey = @"abr_controllerBlock";
 const NSString *ABRouterActionBlockKey = @"abr_actionBlock";

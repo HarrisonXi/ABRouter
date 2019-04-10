@@ -166,23 +166,29 @@ typedef NS_ENUM(NSInteger, ABRouteMapType) {
 - (NSDictionary *)paramsWithAbOption:(ABRouterOption)abOption
 {
     ABRouteMapItem *item = nil;
+    NSNumber *option = nil;
     if (abOption == ABRouterOptionNone) {
         item = [self.subMaps objectForKey:@(0)];
+        option = @(0);
     } else {
         for (NSInteger index = 0; index < [ABRouter optionCount]; index++) {
             if ((abOption & (1 << index)) && [self.subMaps objectForKey:@(index + 1)]) {
                 item = [self.subMaps objectForKey:@(index + 1)];
+                option = @(1 << index);
                 break;
             }
         }
     }
     if (item) {
         if (item.controllerClass) {
-            return @{ABRouterControllerClassKey : item.controllerClass};
+            return @{ABRouterControllerClassKey : item.controllerClass,
+                     ABRouterOptionKey : option};
         } else if (item.controllerBlock) {
-            return @{ABRouterControllerBlockKey : item.controllerBlock};
+            return @{ABRouterControllerBlockKey : item.controllerBlock,
+                     ABRouterOptionKey : option};
         } else if (item.actionBlock) {
-            return @{ABRouterActionBlockKey : item.actionBlock};
+            return @{ABRouterActionBlockKey : item.actionBlock,
+                     ABRouterOptionKey : option};
         }
     }
     return nil;

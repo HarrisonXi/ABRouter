@@ -66,6 +66,7 @@
     [_router map:@"/b/:bId" toControllerClass:[UINavigationController class]];
     [_router map:@"/a/:aId/mine/" toControllerClass:[UITabBarController class]];
 
+    XCTAssertFalse([_router canMapController:@"/a/"]);
     XCTAssertTrue([_router canMapController:@"/a/1/"]);
     XCTAssertTrue([_router canMapController:@"/b/2/"]);
     XCTAssertTrue([_router canMapController:@"/a/3/mine/"]);
@@ -197,22 +198,31 @@
     
     UIViewController *vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionNone];
     XCTAssertEqualObjects([vc class], [UITableViewController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionNone));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionA];
     XCTAssertEqualObjects([vc class], [UITabBarController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionA));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionB];
     XCTAssertEqualObjects([vc class], [UINavigationController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionB));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionC];
     XCTAssertEqualObjects([vc class], [UISplitViewController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionC));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionD];
     XCTAssertEqualObjects([vc class], [UICollectionViewController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionD));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionAll];
     XCTAssertEqualObjects([vc class], [UITabBarController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionA));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionA | ABRouterOptionB];
     XCTAssertEqualObjects([vc class], [UITabBarController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionA));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionC | ABRouterOptionB];
     XCTAssertEqualObjects([vc class], [UINavigationController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionB));
     vc = [_router matchController:@"/a/1/?b=4&c=5" abOption:ABRouterOptionC | ABRouterOptionD];
     XCTAssertEqualObjects([vc class], [UISplitViewController class]);
+    XCTAssertEqualObjects(vc.params[ABRouterOptionKey], @(ABRouterOptionC));
     
     // test remove route
     [_router map:@"/a/:aId/" toControllerClass:NULL abOption:ABRouterOptionA];
@@ -256,18 +266,23 @@
 - (void)testAB2
 {
     [_router map:@"/b/:bId/" toActionBlock:^id(NSDictionary *params) {
+        XCTAssertEqualObjects(params[ABRouterOptionKey], @(ABRouterOptionNone));
         return @(0);
     } abOption:ABRouterOptionNone];
     [_router map:@"/b/:bId/" toActionBlock:^id(NSDictionary *params) {
+        XCTAssertEqualObjects(params[ABRouterOptionKey], @(ABRouterOptionA));
         return @(1);
     } abOption:ABRouterOptionA];
     [_router map:@"/b/:bId/" toActionBlock:^id(NSDictionary *params) {
+        XCTAssertEqualObjects(params[ABRouterOptionKey], @(ABRouterOptionB));
         return @(2);
     } abOption:ABRouterOptionB];
     [_router map:@"/b/:bId/" toActionBlock:^id(NSDictionary *params) {
+        XCTAssertEqualObjects(params[ABRouterOptionKey], @(ABRouterOptionC));
         return @(3);
     } abOption:ABRouterOptionC];
     [_router map:@"/b/:bId/" toActionBlock:^id(NSDictionary *params) {
+        XCTAssertEqualObjects(params[ABRouterOptionKey], @(ABRouterOptionD));
         return @(4);
     } abOption:ABRouterOptionD];
     
