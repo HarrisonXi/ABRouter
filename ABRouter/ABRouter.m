@@ -383,10 +383,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 {
     NSMutableArray *appUrlSchemes = [NSMutableArray array];
 
-    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    if (infoDictionary.count == 0) {
-        infoDictionary = [[NSBundle bundleForClass:[self class]] infoDictionary];
-    }
+    NSDictionary *infoDictionary = [[NSBundle bundleForClass:[self class]] infoDictionary];
     for (NSDictionary *dict in infoDictionary[@"CFBundleURLTypes"]) {
         NSString *appUrlScheme = dict[@"CFBundleURLSchemes"][0];
         [appUrlSchemes addObject:appUrlScheme];

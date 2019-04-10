@@ -1,4 +1,7 @@
-![GitHub](https://img.shields.io/github/license/HarrisonXi/ABRouter.svg) ![Cocoapods](https://img.shields.io/cocoapods/v/ABRouter.svg) ![Cocoapods platforms](https://img.shields.io/cocoapods/p/ABRouter.svg)
+![GitHub](https://img.shields.io/github/license/HarrisonXi/ABRouter.svg)
+![Cocoapods](https://img.shields.io/cocoapods/v/ABRouter.svg)
+![Cocoapods platforms](https://img.shields.io/cocoapods/p/ABRouter.svg)
+[![Travis (.org) branch](https://img.shields.io/travis/HarrisonXi/ABRouter/master.svg)](https://travis-ci.org/HarrisonXi/ABRouter)
 
 # ABRouter
 
