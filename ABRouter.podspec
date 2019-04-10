@@ -7,7 +7,7 @@ Pod::Spec.new do |spec|
   spec.license      = { :type => 'MIT' }
   spec.author       = { 'HarrisonXi' => 'gpra8764@gmail.com' }
   spec.platform     = :ios, '8.0'
-  spec.source       = { :git => 'https://github.com/HarrisonXi/ABRouter.git', :branch => 'master' }
+  spec.source       = { :git => 'https://github.com/HarrisonXi/ABRouter.git', :tag => version }
   spec.source_files = 'ABRouter/*.{h,m}'
   spec.private_header_files = 'ABRouter/ABRouteMap.h'
 end
