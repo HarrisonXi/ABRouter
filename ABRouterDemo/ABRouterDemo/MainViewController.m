@@ -30,7 +30,7 @@
     
     // map to a controller block
     [[ABRouter shared] map:@"/list" toControllerBlock:^UIViewController *(NSDictionary *params) {
-        // do some addtional things here
+        // do some additional actions here
         return [ListViewController new];
     }];
     

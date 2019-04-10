@@ -35,11 +35,11 @@ typedef NS_OPTIONS(NSInteger, ABRouterOption) {
 typedef UIViewController * (^ABRouterControllerBlock)(NSDictionary *params);
 typedef id (^ABRouterActionBlock)(NSDictionary *params);
 
-extern const NSString *ABRouterRouteKey;
-extern const NSString *ABRouterModuleKey;
-extern const NSString *ABRouterOptionKey; // value will be a NSNumber of matched ABRouterOption
-extern const NSString *ABRouterControllerClassKey;
-extern const NSString *ABRouterControllerBlockKey;
-extern const NSString *ABRouterActionBlockKey;
+extern const NSString *ABRouterRouteKey; // value is the route url passed in match method
+extern const NSString *ABRouterModuleKey; // value is the route module registered in map method
+extern const NSString *ABRouterOptionKey; // value is a NSNumber of matched ABRouterOption
+extern const NSString *ABRouterControllerClassKey; // return controller class if the router is the specified type
+extern const NSString *ABRouterControllerBlockKey; // return controller block if the router is the specified type
+extern const NSString *ABRouterActionBlockKey; // return action block if the router is the specified type
 
 #endif /* ABRouterDefines_h */
