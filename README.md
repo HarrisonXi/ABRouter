@@ -1,3 +1,5 @@
+![GitHub](https://img.shields.io/github/license/HarrisonXi/ABRouter.svg) ![Cocoapods](https://img.shields.io/cocoapods/v/ABRouter.svg) ![Cocoapods platforms](https://img.shields.io/cocoapods/p/ABRouter.svg)
+
 # ABRouter
 
 URL Router with ABTest feature for iOS.
