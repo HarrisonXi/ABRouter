@@ -78,7 +78,9 @@ The log result will be:
 }
 ```
 
-The param `detailId` is a required param. `optionalParam` is a optional param. Other params are the internal params of ABRouter. List of internal params:
+The param `detailId` is a required param. `optionalParam` is a optional param. Other params are the internal params of ABRouter.
+
+### List of internal params
 
 ```
 ABRouterRouteKey: value is the route url passed in match method
@@ -143,6 +145,26 @@ ABRouter will filter out your app schemes. Both `vc1` and `vc2` will get a list 
 ```
 UIViewController *vc1 = [[ABRouter shared] matchController:@"/list"];
 UIViewController *vc2 = [[ABRouter shared] matchController:@"abrouter://list"];
+```
+
+# Migrate from HHRouter
+
+### Public methods
+
+```
+- (void)map:(NSString *)route toBlock:(nullable ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
+- (ABRouterActionBlock)matchBlock:(NSString *)route __deprecated_msg("use -matchActionBlock: instead");
+- (id)callBlock:(NSString *)route __deprecated_msg("use -callActionBlock: instead");
+- (BOOL)canRoute:(NSString *)route __deprecated_msg("use -canMapController: & -canMapAction: instead");
+```
+
+### Internal param keys
+
+```
+@"controller_class" -> ABRouterControllerClassKey or ABRouterControllerBlockKey
+@"block" -> ABRouterActionBlockKey
+@"route" -> ABRouterRouteKey
+@"module" -> ABRouterModuleKey
 ```
 
 # Installation
@@ -233,7 +255,9 @@ NSLog(@"%@", vc.params);
 }
 ```
 
-参数`detailId`是一个必选参数。`optionalParam`是一个可选参数。其它参数是ABRouter的内部参数。内部参数的列表：
+参数`detailId`是一个必选参数。`optionalParam`是一个可选参数。其它参数是ABRouter的内部参数。
+
+### 内部参数列表
 
 ```
 ABRouterRouteKey: 传入match系列方法的路由URL
@@ -298,6 +322,26 @@ ABRouter将过滤掉你应用的scheme。`vc1`和`vc2`都可以获得一个列�
 ```
 UIViewController *vc1 = [[ABRouter shared] matchController:@"/list"];
 UIViewController *vc2 = [[ABRouter shared] matchController:@"abrouter://list"];
+```
+
+# 从HHRouter迁移
+
+### 公共方法改变
+
+```
+- (void)map:(NSString *)route toBlock:(nullable ABRouterActionBlock)block __deprecated_msg("use -map:toActionBlock: instead");
+- (ABRouterActionBlock)matchBlock:(NSString *)route __deprecated_msg("use -matchActionBlock: instead");
+- (id)callBlock:(NSString *)route __deprecated_msg("use -callActionBlock: instead");
+- (BOOL)canRoute:(NSString *)route __deprecated_msg("use -canMapController: & -canMapAction: instead");
+```
+
+### 内部参数Key值改变
+
+```
+@"controller_class" -> ABRouterControllerClassKey or ABRouterControllerBlockKey
+@"block" -> ABRouterActionBlockKey
+@"route" -> ABRouterRouteKey
+@"module" -> ABRouterModuleKey
 ```
 
 # 安装
