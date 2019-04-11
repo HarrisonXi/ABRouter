@@ -314,11 +314,11 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
 {
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
 
-    params[ABRouterRouteKey] = [self routeWithoutAppUrlScheme:route];
+    params[ABRouterRouteKey] = [self.class routeWithoutAppUrlScheme:route];
 
     // extract params in route path
     ABRouteModel *routeModel = self.routeModel;
-    NSArray *pathComponents = [self pathComponentsOfRoute:params[ABRouterRouteKey]];
+    NSArray *pathComponents = [self.class pathComponentsOfRoute:params[ABRouterRouteKey]];
     for (NSString *pathComponent in pathComponents) {
         if ([routeModel.subRoutes.allKeys containsObject:pathComponent]) {
             routeModel = routeModel.subRoutes[pathComponent];
@@ -353,7 +353,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     return [params copy];
 }
 
-- (NSArray *)pathComponentsOfRoute:(NSString *)route
++ (NSArray *)pathComponentsOfRoute:(NSString *)route
 {
     NSMutableArray *pathComponents = [NSMutableArray array];
     
@@ -367,7 +367,7 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     return [pathComponents copy];
 }
 
-- (NSString *)routeWithoutAppUrlScheme:(NSString *)route
++ (NSString *)routeWithoutAppUrlScheme:(NSString *)route
 {
     // filter out the app URL scheme.
     for (NSString *appUrlScheme in [self appUrlSchemes]) {
@@ -379,24 +379,29 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
     return route;
 }
 
-- (NSArray *)appUrlSchemes
++ (NSArray *)appUrlSchemes
 {
-    NSMutableArray *appUrlSchemes = [NSMutableArray array];
-
-    NSDictionary *infoDictionary = [[NSBundle bundleForClass:[self class]] infoDictionary];
-    for (NSDictionary *dict in infoDictionary[@"CFBundleURLTypes"]) {
-        NSString *appUrlScheme = dict[@"CFBundleURLSchemes"][0];
-        [appUrlSchemes addObject:appUrlScheme];
-    }
-
-    return [appUrlSchemes copy];
+    static NSArray *appUrlSchemes = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSMutableArray *schemes = [NSMutableArray array];
+        
+        NSDictionary *infoDictionary = [[NSBundle bundleForClass:self.class] infoDictionary];
+        for (NSDictionary *dict in infoDictionary[@"CFBundleURLTypes"]) {
+            NSString *appUrlScheme = dict[@"CFBundleURLSchemes"][0];
+            [schemes addObject:appUrlScheme];
+        }
+        
+        appUrlSchemes = [schemes copy];
+    });
+    return appUrlSchemes;
 }
 
 - (ABRouteModel *)routeModelOfRoute:(NSString *)route
 {
     ABRouteModel *routeModel = self.routeModel;
 
-    for (NSString *pathComponent in [self pathComponentsOfRoute:route]) {
+    for (NSString *pathComponent in [self.class pathComponentsOfRoute:route]) {
         if ([pathComponent hasPrefix:@":"]) {
             if (!routeModel.paramRoute) {
                 routeModel.paramName = [pathComponent substringFromIndex:1];
