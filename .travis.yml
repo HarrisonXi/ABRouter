@@ -1,8 +1,8 @@
 language: objective-c
-osx_image: xcode10.2
+osx_image: xcode11.2
 xcode_workspace: ABRouter.xcworkspace
 xcode_scheme: ABRouterTest
-xcode_destination: platform=iOS Simulator,OS=12.2,name=iPhone X
+xcode_destination: platform=iOS Simulator,OS=13.2.2,name=iPhone 11
 script:
   - set -o pipefail
-  - xcodebuild -workspace ABRouter.xcworkspace -scheme ABRouterTest -destination platform\=iOS\ Simulator,OS\=12.2,name\=iPhone\ X test | xcpretty
+  - xcodebuild -workspace ABRouter.xcworkspace -scheme ABRouterTest -destination platform\=iOS\ Simulator,OS\=13.2.2,name\=iPhone\ 11 test | xcpretty
