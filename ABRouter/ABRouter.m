@@ -176,16 +176,17 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
                 ABRouterControllerBlock controllerBlock = params[ABRouterControllerBlockKey];
                 if (controllerBlock) {
                     viewController = controllerBlock(params);
-                }
-                if ([viewController respondsToSelector:@selector(setParams:)]
-                    && [viewController respondsToSelector:@selector(params)]) {
-                    NSDictionary *aParams = [viewController params];
-                    if (!aParams) {
-                        [viewController setParams:params];
-                    } else {
-                        NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:aParams];
-                        [cParams addEntriesFromDictionary:params];
-                        [viewController setParams:[cParams copy]];
+                    if (viewController
+                        && [viewController respondsToSelector:@selector(setParams:)]
+                        && [viewController respondsToSelector:@selector(params)]) {
+                        NSDictionary *originalParams = [viewController params];
+                        if (!originalParams) {
+                            [viewController setParams:params];
+                        } else {
+                            NSMutableDictionary *combinedParams = [NSMutableDictionary dictionaryWithDictionary:originalParams];
+                            [combinedParams addEntriesFromDictionary:params];
+                            [viewController setParams:[combinedParams copy]];
+                        }
                     }
                 }
             }
@@ -207,10 +208,10 @@ const NSString *ABRouterActionBlockKey = @"abr_actionBlock";
         if (params) {
             ABRouterActionBlock actionBlock = params[ABRouterActionBlockKey];
             if (actionBlock) {
-                ABRouterActionBlock returnBlock = ^id(NSDictionary *aParams) {
-                    NSMutableDictionary *cParams = [NSMutableDictionary dictionaryWithDictionary:params];
-                    [cParams addEntriesFromDictionary:aParams];
-                    return actionBlock([cParams copy]);
+                ABRouterActionBlock returnBlock = ^id(NSDictionary *inputParams) {
+                    NSMutableDictionary *combinedParams = [NSMutableDictionary dictionaryWithDictionary:params];
+                    [combinedParams addEntriesFromDictionary:inputParams];
+                    return actionBlock([combinedParams copy]);
                 };
                 return [returnBlock copy];
             }
