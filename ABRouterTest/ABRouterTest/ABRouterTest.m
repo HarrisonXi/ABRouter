@@ -4,7 +4,7 @@
 //
 //  Created by Light on 2014-03-13.
 //  Copyright (c) 2014 Huohua. All rights reserved.
-//  Copyright (c) 2019 harrisonxi.com. All rights reserved.
+//  Copyright (c) 2019-2020 harrisonxi.com. All rights reserved.
 //
 
 #import <XCTest/XCTest.h>

@@ -126,9 +126,9 @@ Write your ABTest logic with ab option.
 
 ```
 if (enableA) {
-	vc = [[ABRouter shared] matchController:@"/detail/1" abOption:ABRouterOptionA];
+    vc = [[ABRouter shared] matchController:@"/detail/1" abOption:ABRouterOptionA];
 } else {
-	vc = [[ABRouter shared] matchController:@"/detail/2" abOption:ABRouterOptionB];
+    vc = [[ABRouter shared] matchController:@"/detail/2" abOption:ABRouterOptionB];
 }
 ```
 
@@ -303,9 +303,9 @@ __weak MainViewController *weakSelf = self;
 
 ```
 if (enableA) {
-	vc = [[ABRouter shared] matchController:@"/detail/1" abOption:ABRouterOptionA];
+    vc = [[ABRouter shared] matchController:@"/detail/1" abOption:ABRouterOptionA];
 } else {
-	vc = [[ABRouter shared] matchController:@"/detail/2" abOption:ABRouterOptionB];
+    vc = [[ABRouter shared] matchController:@"/detail/2" abOption:ABRouterOptionB];
 }
 ```
 
