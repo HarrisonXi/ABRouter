@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = 'ABRouter'
-  version           = '0.1'
+  version           = '0.1.1'
   spec.version      = version
   spec.summary      = 'URL Router with ABTest feature for iOS.'
   spec.homepage     = 'https://github.com/HarrisonXi/ABRouter'
